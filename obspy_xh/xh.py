@@ -12,23 +12,90 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import io
+import struct
 
 import obspy
 from obspy.core import AttribDict
 from obspy.core.util.obspy_types import CustomComplex
 from obspy.station.response import (InstrumentSensitivity, Response,
                                     PolesZerosResponseStage)
-
 import numpy as np
 
-from obspy_xh import header_0_98
+
+from . import header_0_98
+
+
+def detect_format_version_and_endianness(filename):
+    """
+    Detects the format version and byte order. Will return False if the file
+    is not an XH file.
+
+    :param filename: The file to check.
+    :type filename: str
+    """
+    with io.open(filename, "rb") as fh:
+        version = fh.read(4)
+        fh.seek(4, 1)
+        byte_order_test_int = fh.read(4)
+
+    if len(version) != 4 or len(byte_order_test_int) != 4:
+        return False
+
+    # Detect byte order.
+    if struct.unpack("<i", byte_order_test_int)[0] == 12345678:
+        # Little endian.
+        bo = "<"
+    elif struct.unpack(">i", byte_order_test_int)[0] == 12345678:
+        # Big endian.
+        bo = ">"
+    else:
+        # Not an XH file.
+        return False
+
+    version = str(struct.unpack(bo + "f", version)[0])[:4]
+    # Only version 0.98 is currently supported.
+    if version != "0.98":
+        return False
+    return {"byte_order": bo, "format_version": version}
 
 
 def is_xh(filename):
-    pass
+    """
+    Detects if the given file is an XH file.
+
+    :param filename: The file to check.
+    :type filename: str
+    """
+    info = detect_format_version_and_endianness(filename)
+    if info is False:
+        return False
+    return True
 
 
 def read_xh(filename):
+    """
+    Reads the given file to an ObsPy Stream object.
+
+    :param filename: The file to read.
+    :type filename: str
+    """
+    info = detect_format_version_and_endianness(filename)
+
+    # Dispatch based on the XH format version.
+    if info["format_version"] == "0.98":
+        return read_xh_0_98(filename, info["byte_order"])
+    else:
+        raise NotImplementedError
+
+
+def read_xh_0_98(filename, byte_order):
+    """
+    Reads the given file to an ObsPy Stream object for the XH format version
+    0.98.
+
+    :param filename: The file to read.
+    :type filename: str
+    """
     st = obspy.Stream()
 
     with io.open(filename, "rb") as fh:
@@ -37,7 +104,7 @@ def read_xh(filename):
             if len(header) < 1024:
                 break
             header = np.frombuffer(
-                header, dtype=header_0_98.get_header_dtype("<"))
+                header, dtype=header_0_98.get_header_dtype(byte_order))
             header = _record_array_to_dict(header)
 
             # Convert both times.
@@ -57,7 +124,7 @@ def read_xh(filename):
                 header["tstart_second"])
 
             data = np.frombuffer(fh.read(header["ndata"] * 4),
-                                 dtype=np.float32)
+                                 dtype=byte_order + "f4")
 
             tr = obspy.Trace(data=data)
             tr.stats.network = header["netw"]

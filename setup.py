@@ -18,12 +18,13 @@ setup(
     ],
     # This registers the module with ObsPy.
     entry_points={
-        #"obspy.plugin.waveform": [
-            #"XH = obspy_xh"],
-        #"obspy.plugin.waveform.XH": [
-            #"isFormat = obspy_xh.xh:is_xh",
-            #"readFormat = obspy_xh.xh:read_xh",
-            #"writeFormat = obspy_xh.xh:write_xh",
-        #]
+        "obspy.plugin.waveform": [
+            "XH = obspy_xh"
+        ],
+        "obspy.plugin.waveform.XH": [
+            "isFormat = obspy_xh.core:is_xh",
+            "readFormat = obspy_xh.core:read_xh",
+            "writeFormat = obspy_xh.core:write_xh",
+        ]
     }
 )

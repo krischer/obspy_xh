@@ -148,7 +148,9 @@ def read_xh_0_98(filename, byte_order):
                 value=header["DS"],
                 # This is true for most commonly used instruments.
                 input_units="M/S",
-                output_units="COUNTS")
+                input_units_description="Velocity in Meters Per Second",
+                output_units="COUNTS",
+                output_units_description="Digital Counts")
             paz = PolesZerosResponseStage(
                 stage_sequence_number=1,
                 # We assume DS is somehow the total sensitivity. As we have

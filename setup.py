@@ -23,8 +23,7 @@ setup(
         ],
         "obspy.plugin.waveform.XH": [
             "isFormat = obspy_xh.core:is_xh",
-            "readFormat = obspy_xh.core:read_xh",
-            "writeFormat = obspy_xh.core:write_xh",
+            "readFormat = obspy_xh.core:read_xh"
         ]
     }
 )

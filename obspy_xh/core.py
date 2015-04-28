@@ -72,7 +72,7 @@ def is_xh(filename):
     return True
 
 
-def read_xh(filename):
+def read_xh(filename, *args, **kwargs):
     """
     Reads the given file to an ObsPy Stream object.
 
@@ -228,7 +228,3 @@ def _record_array_to_dict(rec_array):
         else:
             raise NotImplementedError
     return ret_val
-
-
-def write_xh(st, filename):
-    pass

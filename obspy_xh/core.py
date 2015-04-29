@@ -17,8 +17,6 @@ import struct
 import obspy
 from obspy.core import AttribDict
 from obspy.core.util.obspy_types import CustomComplex
-from obspy.station.response import (InstrumentSensitivity, Response,
-                                    PolesZerosResponseStage)
 import numpy as np
 
 
@@ -135,6 +133,14 @@ def read_xh_0_98(filename, byte_order):
             # appears to be interpreted correctly here.
             tr.stats.sampling_rate = header["delta"]
             tr.stats.starttime = starttime
+
+            # The reason why this is here is a bit complicated and has to do
+            # with ObsPy interna. It can be anywhere if one uses a stable ObsPy
+            # version or does not jump between ObsPy versions which most users
+            # don't do.
+            from obspy.station.response import (InstrumentSensitivity,
+                                                Response,
+                                                PolesZerosResponseStage)
 
             # Build the instrument response.
             # XXX: The instrument response definition in XH is very basic and
